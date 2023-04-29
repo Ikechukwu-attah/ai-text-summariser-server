@@ -2,6 +2,7 @@ import express from "express";
 import * as dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./mongodb/connect.js";
+import userRouter from "./routes/user.js";
 
 dotenv.config();
 
@@ -9,6 +10,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json({ limits: "50mb" }));
+
+app.use("/users", userRouter);
 
 app.get("/", (req, res) => {
   res.send({ message: "Hello World" });
