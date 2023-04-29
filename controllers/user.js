@@ -4,6 +4,7 @@ import nodemailer from "nodemailer";
 import crypto from "crypto";
 import * as dotenv from "dotenv";
 import speakeasy from "speakeasy";
+import { sendOTPEmail } from "../utils/emailOTPConfig.js";
 
 dotenv.config();
 import User from "../models/user.js";
@@ -12,10 +13,10 @@ export const logIn = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    //   checking for user with email
+    // checking for user with email
     const existingUser = await User.findOne({ email });
 
-    // checking if user exist or registered
+    // checking if user exists or is registered
     if (!existingUser)
       return res.status(404).json({ message: "User doesn't exist." });
 
@@ -28,7 +29,9 @@ export const logIn = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
 
     if (existingUser.twoFactorSecret) {
-      res.status(200).json({ userId: existingUser._id, requires2FA: true });
+      return res
+        .status(200)
+        .json({ userId: existingUser._id, requires2FA: true });
     }
 
     const token = jwt.sign(
@@ -182,13 +185,56 @@ export const enable2FA = async (req, res) => {
     }
 
     const secret = speakeasy.generateSecret({ length: 20 });
+
+    const otpToken = speakeasy.totp({
+      secret: secret.base32,
+      encoding: "base32",
+    });
     user.twoFactorSecret = secret.base32;
 
     await user.save();
 
-    res.status(200).json({ message: "2FA enabled.", secret: secret.base32 });
+    // Sending OTP token via email
+    sendOTPEmail(user.email, otpToken, secret);
+
+    res.status(200).json({
+      message: "2FA enabled and OTP token sent via email",
+      secret: secret.base32,
+    });
   } catch (error) {
     console.log("Error", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// Verify 2 factor authentication
+export const verify2FA = async (req, res) => {
+  try {
+    const { userId, token } = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const verified = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: "base32",
+      token,
+      digits: 6, //Set the number of digits for the OTP token
+    });
+
+    if (verified) {
+      const token = jwt.sign({ email: user.email, id: user._id }, "test", {
+        expiresIn: "1h",
+      });
+      res.status(200).json({ token });
+    } else {
+      res.status(401).json({ message: "Invalid OTP token" });
+    }
+  } catch (error) {
+    console.log("error", error);
     res.status(500).json({ message: "Something went wrong" });
   }
 };
