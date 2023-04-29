@@ -6,10 +6,10 @@ const userSchema = mongoose.Schema({
   email: { type: String, required: true },
   password: { type: String, required: true },
   confirmPassword: { type: String, required: true },
-  //   _id: { type: String },
   phone: { type: Number, required: true },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+  twoFactorSecret: { type: String },
 });
 
 export default mongoose.model("User", userSchema);

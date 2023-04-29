@@ -3,10 +3,10 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 import * as dotenv from "dotenv";
+import speakeasy from "speakeasy";
 
 dotenv.config();
 import User from "../models/user.js";
-import { error } from "console";
 
 export const logIn = async (req, res) => {
   const { email, password } = req.body;
@@ -26,6 +26,10 @@ export const logIn = async (req, res) => {
 
     if (!isPasswordCorrect)
       return res.status(400).json({ message: "Invalid credentials" });
+
+    if (existingUser.twoFactorSecret) {
+      res.status(200).json({ userId: existingUser._id, requires2FA: true });
+    }
 
     const token = jwt.sign(
       { email: existingUser.email, id: existingUser._id },
@@ -162,6 +166,29 @@ export const resetPassword = async (req, res) => {
 
     res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// 2FA 2 factor authentication
+
+export const enable2FA = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findOne({ userId });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const secret = speakeasy.generateSecret({ length: 20 });
+    user.twoFactorSecret = secret.base32;
+
+    await user.save();
+
+    res.status(200).json({ message: "2FA enabled.", secret: secret.base32 });
+  } catch (error) {
+    console.log("Error", error);
     res.status(500).json({ message: "Something went wrong" });
   }
 };
