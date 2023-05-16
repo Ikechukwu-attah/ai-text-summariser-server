@@ -6,6 +6,7 @@ export const handleSummarization = async (req, res) => {
     const text = req.body.text;
     console.log("text::", text);
     const summary = await summarizeArticle(text);
+    console.log("Summary:::", summary);
     res.json({ summary });
   } catch (error) {
     res.status(500).json({ error: "Failed to summarize text" });

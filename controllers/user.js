@@ -82,7 +82,13 @@ export const signUp = async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.status(200).json({ result, token });
+    res.status(200).json({
+      firstName: result.firstName,
+      lastName: result.lastName,
+      email: result.email,
+      phone: result.phone,
+      token,
+    });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Something went wrong" });
@@ -127,9 +133,9 @@ export const forgotPassword = async (req, res) => {
       subject: "Password Reset",
       text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
              Please click on the following link, or paste this into your browser to complete the process within one hour of receiving it:\n\n
-             http://localhost:3000/reset-password/${token}\n\n
+             http://127.0.0.1:5173/reset-password/${token}\n\n
              If you did not request this, please ignore this email and your password will remain unchanged.\n`,
-      html: `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p><p>Please click on the following link, or paste this into your browser to complete the process within one hour of receiving it:</p> <a href="http://localhost:3000/reset-password/${token}">http://localhost:3000/reset-password/${token}</a><p>If you did not request this, please ignore this email and your password will remain unchanged.</p>`, // html body
+      html: `<p>You are receiving this because you (or someone else) have requested the reset of the password for your account.</p><p>Please click on the following link, or paste this into your browser to complete the process within one hour of receiving it:</p> <a href="http://127.0.0.1:5173/reset-password/${token}\n\n">http://127.0.0.1:5173/reset-password/${token}\n\n</a><p>If you did not request this, please ignore this email and your password will remain unchanged.</p>`, // html body
     };
 
     transporter.sendMail(mailOptions, (err) => {
@@ -169,8 +175,14 @@ export const resetPassword = async (req, res) => {
 
     res.status(200).json({ message: "Password updated successfully" });
   } catch (error) {
+    console.log({ error });
     res.status(500).json({ message: "Something went wrong" });
   }
+};
+
+export const logout = () => {
+  const user = User;
+  user.resetPasswordToken = "";
 };
 
 // 2FA 2 factor authentication

@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json({ limits: "50mb" }));
 
 app.use("/summarize", summarizedRouter);
-app.use("/users", userRouter);
+app.use("/user", userRouter);
 
 app.get("/", (req, res) => {
   res.send({ message: "Hello World" });
