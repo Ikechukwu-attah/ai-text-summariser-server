@@ -14,8 +14,6 @@ export const extractArticleContent = async (url) => {
     const reader = new Readability(dom.window.document);
     const article = reader.parse();
 
-    console.log("summary output", article);
-
     if (!article) {
       throw new Error("No suitable content found");
     }

@@ -47,6 +47,7 @@ export const logIn = async (req, res) => {
       email: existingUser.email,
       _id: existingUser._id,
     };
+
     res.status(200).json({ result, token });
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
@@ -88,6 +89,7 @@ export const signUp = async (req, res) => {
       email: result.email,
       phone: result.phone,
       token,
+      id: result._id,
     });
   } catch (error) {
     console.error("Error:", error);
@@ -248,5 +250,35 @@ export const verify2FA = async (req, res) => {
   } catch (error) {
     console.log("error", error);
     res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+export const getAllUser = async (req, res) => {
+  try {
+    const users = await User.find();
+    return res.status(200).json(users);
+  } catch (error) {
+    console.log("users error", error);
+    return res.status(500).send("Server error");
+  }
+};
+
+// Endpoint for getting a single user detail
+
+export const singleUser = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      res.status(404).send("User not found");
+    } else {
+      return res.status(200).json(user);
+    }
+  } catch (error) {
+    // console.log("single user error:", error);
+    console.log(`Error while getting user with id ${userId}: `, error);
+    res.status(500).send("Server error");
   }
 };

@@ -45,7 +45,7 @@ export const summarizeArticle = async (articleContent) => {
       temperature: 0.5,
     });
 
-    console.log("Response data:", response.data.choices[0].text.trim());
+    console.log("Response data:", response.data.choices[0]);
     if (response && response.data.choices && response.data.choices[0]) {
       return response.data.choices[0].text.trim();
     } else {
