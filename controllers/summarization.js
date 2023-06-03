@@ -1,6 +1,7 @@
 import { summarizeArticle } from "../utils/openAPIConfig.js";
 import { extractArticleContent } from "./webScraping.js";
 import SummarizedArticleModel from "../models/summarizedArticle.js";
+import mongoose from "mongoose";
 
 // export const handleSummarization = async (req, res, url) => {
 //   try {
@@ -69,5 +70,28 @@ export const getSingleSummarizedArticle = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json(error);
+  }
+};
+
+export const deleteSummarizedArticle = async (req, res) => {
+  const { articleId } = req.params;
+  console.log({ articleId });
+
+  if (!mongoose.Types.ObjectId.isValid(articleId)) {
+    return res.status(404).json({ message: "Invalid article id" });
+  }
+
+  try {
+    const deletedArticle = await SummarizedArticleModel.findByIdAndDelete(
+      articleId
+    );
+
+    if (!deletedArticle) {
+      return res.status(404).json({ message: "No article with this id found" });
+    }
+
+    return res.status(200).json({ message: "Item deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: "Something went wrong" });
   }
 };
